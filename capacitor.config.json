@@ -1,0 +1,16 @@
+{
+  "appId": "com.taberna.tapper",
+  "appName": "Taberna Tapper",
+  "webDir": ".",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#4e342e",
+      "showSpinner": false
+    }
+  }
+}

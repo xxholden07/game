@@ -1,0 +1,22 @@
+{
+  "name": "taberna-tapper",
+  "version": "1.0.0",
+  "description": "Jogo Tapper Medieval - Taberna",
+  "main": "index.html",
+  "scripts": {
+    "android": "cap open android",
+    "ios": "cap open ios",
+    "build": "cap sync"
+  },
+  "keywords": ["game", "tapper", "medieval"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@capacitor/cli": "^5.7.0"
+  },
+  "dependencies": {
+    "@capacitor/core": "^5.7.0",
+    "@capacitor/android": "^5.7.0",
+    "@capacitor/ios": "^5.7.0"
+  }
+}
