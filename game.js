@@ -2,6 +2,15 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// Modo debug - pressione D para ativar/desativar
+let debugMode = false;
+
+// Ajustes de posição dos personagens (use as setas + Shift no modo debug)
+const POSITION_OFFSET = {
+    bartender: { x: 0, y: 0 },
+    customer: { x: 0, y: 0 }
+};
+
 // Carregamento de sprites
 const tabernaImg = new Image();
 tabernaImg.src = 'sprite/taberna.png';
@@ -115,8 +124,75 @@ tabernaImg.onload = onSpriteLoad;
 // Iniciar carregamento
 loadSprites();
 
+// ==========================================
+// SISTEMA DE RANKING ARCADE
+// ==========================================
+const MAX_RANKINGS = 10;
+let rankings = [];
+let isEnteringName = false;
+let playerInitials = ['A', 'A', 'A'];
+let currentInitialIndex = 0;
+let blinkTimer = 0;
+
+// Carregar rankings do localStorage
+function loadRankings() {
+    try {
+        const saved = localStorage.getItem('tabernaRankings');
+        if (saved) {
+            rankings = JSON.parse(saved);
+        } else {
+            // Rankings iniciais (placeholder)
+            rankings = [
+                { initials: 'AAA', score: 5000, level: 5 },
+                { initials: 'BBB', score: 4000, level: 4 },
+                { initials: 'CCC', score: 3000, level: 3 },
+                { initials: 'DDD', score: 2000, level: 2 },
+                { initials: 'EEE', score: 1000, level: 1 }
+            ];
+        }
+    } catch (e) {
+        rankings = [];
+    }
+}
+
+// Salvar rankings no localStorage
+function saveRankings() {
+    try {
+        localStorage.setItem('tabernaRankings', JSON.stringify(rankings));
+    } catch (e) {
+        console.error('Erro ao salvar ranking:', e);
+    }
+}
+
+// Verificar se a pontuação entra no ranking
+function isHighScore(newScore) {
+    if (rankings.length < MAX_RANKINGS) return true;
+    return newScore > rankings[rankings.length - 1].score;
+}
+
+// Adicionar ao ranking
+function addToRanking(initials, newScore, newLevel) {
+    rankings.push({ initials, score: newScore, level: newLevel });
+    rankings.sort((a, b) => b.score - a.score);
+    if (rankings.length > MAX_RANKINGS) {
+        rankings = rankings.slice(0, MAX_RANKINGS);
+    }
+    saveRankings();
+}
+
+// Obter posição no ranking
+function getRankPosition(newScore) {
+    for (let i = 0; i < rankings.length; i++) {
+        if (newScore > rankings[i].score) return i + 1;
+    }
+    return rankings.length + 1;
+}
+
+// Carregar rankings ao iniciar
+loadRankings();
+
 // Estados do jogo
-let gameState = 'start'; // start, playing, paused, gameover, powerSelect
+let gameState = 'start'; // start, playing, paused, gameover, powerSelect, enterName, showRanking
 let score = 0;
 let level = 1;
 let lives = 3;
@@ -257,9 +333,13 @@ class Bartender {
             const drawWidth = config.frameSize.w * config.scale;
             const drawHeight = config.frameSize.h * config.scale;
             
+            // Aplicar offsets de debug
+            const offsetX = POSITION_OFFSET.bartender.x;
+            const offsetY = POSITION_OFFSET.bartender.y;
+            
             ctx.save();
-            // Posicionar atrás do balcão (offset Y maior) e espelhar para olhar para a direita
-            ctx.translate(this.x, this.y - drawHeight - 25);
+            // Posicionar atrás do balcão e espelhar para olhar para a direita
+            ctx.translate(this.x + offsetX, this.y - drawHeight + offsetY);
             ctx.scale(-1, 1); // Espelhar para olhar para a direita
             
             // Desenhar sprite (já tem fundo transparente)
@@ -276,7 +356,7 @@ class Bartender {
             if (activePowers.length > 0) {
                 ctx.strokeStyle = '#ffd54f';
                 ctx.lineWidth = 3;
-                ctx.strokeRect(this.x - drawWidth/2 - 5, this.y - drawHeight - 30, drawWidth + 10, drawHeight + 10);
+                ctx.strokeRect(this.x + offsetX - drawWidth/2 - 5, this.y - drawHeight + offsetY - 5, drawWidth + 10, drawHeight + 10);
                 
                 // Partículas douradas
                 if (Math.random() < 0.3) {
@@ -470,6 +550,10 @@ class Customer {
         const sprites = SPRITES[this.spriteKey];
         const frameIdx = Math.min(this.frameIndex, sprites.length - 1);
         
+        // Aplicar offsets de debug
+        const offsetX = POSITION_OFFSET.customer.x;
+        const offsetY = POSITION_OFFSET.customer.y;
+        
         if (spritesLoaded && sprites[frameIdx] && sprites[frameIdx].complete) {
             const sprite = sprites[frameIdx];
             
@@ -479,7 +563,7 @@ class Customer {
             
             ctx.save();
             // Posicionar atrás do balcão (clientes vêm da direita)
-            ctx.translate(this.x, this.y - drawHeight - 25);
+            ctx.translate(this.x + offsetX, this.y - drawHeight + offsetY);
             // Não espelhar - clientes olham para a esquerda naturalmente
             
             // Desenhar sprite (já tem fundo transparente)
@@ -494,27 +578,27 @@ class Customer {
             ctx.restore();
             
             // Barra de felicidade acima do sprite (ajustada para nova posição)
-            const barY = this.y - drawHeight - 35;
+            const barY = this.y - drawHeight + offsetY - 10;
             ctx.fillStyle = 'rgba(0,0,0,0.5)';
-            ctx.fillRect(this.x - 25, barY, 50, 6);
+            ctx.fillRect(this.x + offsetX - 25, barY, 50, 6);
             ctx.fillStyle = this.happiness > 0.5 ? '#4caf50' : '#f44336';
-            ctx.fillRect(this.x - 25, barY, 50 * this.happiness, 6);
+            ctx.fillRect(this.x + offsetX - 25, barY, 50 * this.happiness, 6);
             
             // Indicadores especiais
             if (this.type === 'vip') {
                 // Coroa dourada
                 ctx.font = '16px serif';
-                ctx.fillText('👑', this.x - 8, barY - 5);
+                ctx.fillText('👑', this.x + offsetX - 8, barY - 5);
             } else if (this.type === 'rush') {
                 // Símbolo de pressa
                 ctx.font = '16px serif';
-                ctx.fillText('⚡', this.x + 35, barY + 20);
+                ctx.fillText('⚡', this.x + offsetX + 35, barY + 20);
             } else if (this.type === 'drunk') {
                 // Estrelinhas girando
                 if (Math.floor(this.wobble * 10) % 2 === 0) {
                     ctx.font = '12px serif';
-                    ctx.fillText('💫', this.x - 35, barY + 15);
-                    ctx.fillText('💫', this.x + 35, barY + 10);
+                    ctx.fillText('💫', this.x + offsetX - 35, barY + 15);
+                    ctx.fillText('💫', this.x + offsetX + 35, barY + 10);
                 }
             }
         } else {
@@ -823,6 +907,57 @@ function selectPower(index) {
 }
 
 // Funções de desenho
+// Função de debug para visualizar alinhamento
+function drawDebugOverlay() {
+    if (!debugMode) return;
+    
+    ctx.save();
+    ctx.globalAlpha = 0.7;
+    
+    // Desenhar linhas dos balcões (BAR_POSITIONS)
+    ctx.strokeStyle = '#00ff00';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    
+    for (let i = 0; i < BAR_POSITIONS.length; i++) {
+        const y = BAR_POSITIONS[i];
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+        
+        // Label
+        ctx.fillStyle = '#00ff00';
+        ctx.font = '12px monospace';
+        ctx.fillText(`Balcão ${i + 1}: Y=${y}`, 10, y - 5);
+    }
+    
+    // Linha do bartender X
+    ctx.strokeStyle = '#ff00ff';
+    ctx.beginPath();
+    ctx.moveTo(BARTENDER_X, 0);
+    ctx.lineTo(BARTENDER_X, canvas.height);
+    ctx.stroke();
+    ctx.fillStyle = '#ff00ff';
+    ctx.fillText(`Bartender X=${BARTENDER_X}`, BARTENDER_X + 5, 20);
+    
+    // Info de offsets
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(0,0,0,0.8)';
+    ctx.fillRect(canvas.width - 220, 10, 210, 120);
+    ctx.fillStyle = '#fff';
+    ctx.font = '14px monospace';
+    ctx.fillText('🔧 MODO DEBUG', canvas.width - 210, 30);
+    ctx.font = '11px monospace';
+    ctx.fillText(`Bartender offset: (${POSITION_OFFSET.bartender.x}, ${POSITION_OFFSET.bartender.y})`, canvas.width - 210, 50);
+    ctx.fillText(`Customer offset: (${POSITION_OFFSET.customer.x}, ${POSITION_OFFSET.customer.y})`, canvas.width - 210, 65);
+    ctx.fillText('D = toggle debug', canvas.width - 210, 85);
+    ctx.fillText('Shift+Setas = ajustar bartender', canvas.width - 210, 100);
+    ctx.fillText('Ctrl+Setas = ajustar customers', canvas.width - 210, 115);
+    
+    ctx.restore();
+}
+
 function drawBackground() {
     // Se a imagem da taberna foi carregada, usar como fundo
     if (spritesLoaded && tabernaImg.complete) {
@@ -1161,6 +1296,9 @@ function draw() {
     // Desenhar bartender por último (na frente)
     bartender.draw();
     
+    // Overlay de debug (se ativado)
+    drawDebugOverlay();
+    
     // Desenhar animação de level up
     if (levelUpAnimation > 0) {
         levelUpAnimation--;
@@ -1416,6 +1554,204 @@ function draw() {
         ctx.fillText('PAUSADO', canvas.width / 2, canvas.height / 2);
         ctx.textAlign = 'left';
     }
+    
+    // ==========================================
+    // TELA DE INSERIR INICIAIS (ARCADE STYLE)
+    // ==========================================
+    if (gameState === 'enterName') {
+        blinkTimer = (blinkTimer + 1) % 60;
+        
+        // Fundo escuro
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Moldura de pergaminho
+        const boxW = 500;
+        const boxH = 400;
+        const boxX = (canvas.width - boxW) / 2;
+        const boxY = (canvas.height - boxH) / 2;
+        
+        // Fundo do pergaminho
+        ctx.fillStyle = '#d7ccc8';
+        ctx.fillRect(boxX, boxY, boxW, boxH);
+        
+        // Bordas decorativas
+        ctx.strokeStyle = '#6d4c41';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(boxX, boxY, boxW, boxH);
+        ctx.strokeStyle = '#8d6e63';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(boxX + 10, boxY + 10, boxW - 20, boxH - 20);
+        
+        ctx.textAlign = 'center';
+        
+        // Título
+        ctx.fillStyle = '#d32f2f';
+        ctx.font = 'bold 36px serif';
+        ctx.fillText('🏆 NOVO RECORDE! 🏆', canvas.width / 2, boxY + 60);
+        
+        // Posição no ranking
+        const position = getRankPosition(score);
+        ctx.fillStyle = '#4e342e';
+        ctx.font = 'bold 24px serif';
+        ctx.fillText(`${position}º LUGAR`, canvas.width / 2, boxY + 100);
+        
+        // Pontuação
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 48px serif';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeText(`${score} PTS`, canvas.width / 2, boxY + 160);
+        ctx.fillText(`${score} PTS`, canvas.width / 2, boxY + 160);
+        
+        // Instrução
+        ctx.fillStyle = '#5d4037';
+        ctx.font = '20px serif';
+        ctx.fillText('DIGITE SUAS INICIAIS', canvas.width / 2, boxY + 210);
+        
+        // Letras das iniciais (estilo arcade)
+        const letterSpacing = 80;
+        const lettersX = canvas.width / 2 - letterSpacing;
+        const lettersY = boxY + 280;
+        
+        for (let i = 0; i < 3; i++) {
+            const x = lettersX + i * letterSpacing;
+            const isActive = i === currentInitialIndex;
+            
+            // Caixa da letra
+            ctx.fillStyle = isActive ? '#fff9c4' : '#bcaaa4';
+            ctx.fillRect(x - 30, lettersY - 45, 60, 70);
+            ctx.strokeStyle = isActive ? '#ffd54f' : '#6d4c41';
+            ctx.lineWidth = isActive ? 4 : 2;
+            ctx.strokeRect(x - 30, lettersY - 45, 60, 70);
+            
+            // Setas (se ativo)
+            if (isActive) {
+                ctx.fillStyle = '#d32f2f';
+                ctx.font = '24px serif';
+                // Seta para cima
+                ctx.fillText('▲', x, lettersY - 55);
+                // Seta para baixo
+                ctx.fillText('▼', x, lettersY + 45);
+            }
+            
+            // Letra (pisca se ativo)
+            if (!isActive || blinkTimer < 45) {
+                ctx.fillStyle = '#4e342e';
+                ctx.font = 'bold 48px monospace';
+                ctx.fillText(playerInitials[i], x, lettersY + 15);
+            }
+        }
+        
+        // Instruções
+        ctx.fillStyle = '#5d4037';
+        ctx.font = '16px serif';
+        ctx.fillText('↑↓ Mudar letra  |  ←→ Mover  |  ENTER Confirmar', canvas.width / 2, boxY + 360);
+        
+        ctx.textAlign = 'left';
+    }
+    
+    // ==========================================
+    // TELA DE RANKING (ARCADE STYLE)
+    // ==========================================
+    if (gameState === 'showRanking') {
+        // Fundo escuro
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Moldura
+        const boxW = 600;
+        const boxH = 520;
+        const boxX = (canvas.width - boxW) / 2;
+        const boxY = (canvas.height - boxH) / 2;
+        
+        // Fundo do pergaminho
+        ctx.fillStyle = '#d7ccc8';
+        ctx.fillRect(boxX, boxY, boxW, boxH);
+        
+        // Bordas decorativas
+        ctx.strokeStyle = '#6d4c41';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(boxX, boxY, boxW, boxH);
+        ctx.strokeStyle = '#8d6e63';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(boxX + 10, boxY + 10, boxW - 20, boxH - 20);
+        
+        ctx.textAlign = 'center';
+        
+        // Título
+        ctx.fillStyle = '#d32f2f';
+        ctx.font = 'bold 40px serif';
+        ctx.fillText('🏆 HALL DA FAMA 🏆', canvas.width / 2, boxY + 55);
+        
+        // Cabeçalho da tabela
+        ctx.fillStyle = '#4e342e';
+        ctx.font = 'bold 18px monospace';
+        ctx.fillText('RANK    NOME     PONTOS    NÍVEL', canvas.width / 2, boxY + 95);
+        
+        // Linha divisória
+        ctx.strokeStyle = '#6d4c41';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(boxX + 40, boxY + 105);
+        ctx.lineTo(boxX + boxW - 40, boxY + 105);
+        ctx.stroke();
+        
+        // Listar rankings
+        const rowHeight = 38;
+        for (let i = 0; i < Math.min(rankings.length, 10); i++) {
+            const r = rankings[i];
+            const y = boxY + 140 + i * rowHeight;
+            
+            // Medalhas para top 3
+            let medal = '';
+            let color = '#4e342e';
+            if (i === 0) { medal = '🥇'; color = '#ffd700'; }
+            else if (i === 1) { medal = '🥈'; color = '#c0c0c0'; }
+            else if (i === 2) { medal = '🥉'; color = '#cd7f32'; }
+            
+            // Fundo alternado
+            if (i % 2 === 0) {
+                ctx.fillStyle = 'rgba(139, 90, 43, 0.1)';
+                ctx.fillRect(boxX + 30, y - 25, boxW - 60, rowHeight);
+            }
+            
+            // Posição
+            ctx.font = 'bold 24px serif';
+            ctx.fillStyle = color;
+            const posText = medal ? `${medal}` : `${i + 1}º`;
+            ctx.fillText(posText, boxX + 80, y);
+            
+            // Nome (iniciais)
+            ctx.font = 'bold 28px monospace';
+            ctx.fillStyle = '#4e342e';
+            ctx.fillText(r.initials, boxX + 200, y);
+            
+            // Pontuação
+            ctx.font = 'bold 24px monospace';
+            ctx.fillStyle = i < 3 ? color : '#5d4037';
+            ctx.fillText(r.score.toString().padStart(8, ' '), boxX + 380, y);
+            
+            // Nível
+            ctx.font = '20px serif';
+            ctx.fillStyle = '#6d4c41';
+            ctx.fillText(`Lv.${r.level}`, boxX + 520, y);
+        }
+        
+        // Se não há rankings
+        if (rankings.length === 0) {
+            ctx.fillStyle = '#5d4037';
+            ctx.font = '24px serif';
+            ctx.fillText('Nenhum recorde ainda!', canvas.width / 2, boxY + 250);
+        }
+        
+        // Instrução para sair
+        ctx.fillStyle = '#5d4037';
+        ctx.font = '18px serif';
+        ctx.fillText('Pressione ESC ou ENTER para voltar', canvas.width / 2, boxY + boxH - 25);
+        
+        ctx.textAlign = 'left';
+    }
 }
 
 function gameLoop() {
@@ -1464,12 +1800,101 @@ function playSound(type) {
 
 // Controles do teclado
 document.addEventListener('keydown', (e) => {
+    // ==========================================
+    // CONTROLES DO RANKING
+    // ==========================================
+    
+    // Tela de inserir iniciais
+    if (gameState === 'enterName') {
+        if (e.key === 'ArrowUp') {
+            // Próxima letra (A-Z)
+            const current = playerInitials[currentInitialIndex].charCodeAt(0);
+            playerInitials[currentInitialIndex] = String.fromCharCode(current >= 90 ? 65 : current + 1);
+            playSound('hit');
+            e.preventDefault();
+        } else if (e.key === 'ArrowDown') {
+            // Letra anterior
+            const current = playerInitials[currentInitialIndex].charCodeAt(0);
+            playerInitials[currentInitialIndex] = String.fromCharCode(current <= 65 ? 90 : current - 1);
+            playSound('hit');
+            e.preventDefault();
+        } else if (e.key === 'ArrowLeft') {
+            // Mover para inicial anterior
+            currentInitialIndex = Math.max(0, currentInitialIndex - 1);
+            playSound('hit');
+            e.preventDefault();
+        } else if (e.key === 'ArrowRight') {
+            // Mover para próxima inicial
+            currentInitialIndex = Math.min(2, currentInitialIndex + 1);
+            playSound('hit');
+            e.preventDefault();
+        } else if (e.key === 'Enter') {
+            // Confirmar iniciais
+            confirmInitials();
+            e.preventDefault();
+        } else if (e.key.length === 1 && /[A-Za-z]/.test(e.key)) {
+            // Digitar letra diretamente
+            playerInitials[currentInitialIndex] = e.key.toUpperCase();
+            currentInitialIndex = Math.min(2, currentInitialIndex + 1);
+            playSound('hit');
+            e.preventDefault();
+        }
+        return;
+    }
+    
+    // Tela de ranking
+    if (gameState === 'showRanking') {
+        if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+            exitRanking();
+            e.preventDefault();
+        }
+        return;
+    }
+    
+    // Ver ranking na tela inicial (tecla R)
+    if ((gameState === 'start' || gameState === 'gameover') && (e.key === 'r' || e.key === 'R')) {
+        showRanking();
+        return;
+    }
+    
+    // Toggle modo debug
+    if (e.key === 'd' || e.key === 'D') {
+        if (gameState !== 'powerSelect') {
+            debugMode = !debugMode;
+            console.log('Debug mode:', debugMode);
+            return;
+        }
+    }
+    
+    // Ajustes de posição no modo debug
+    if (debugMode) {
+        const step = 5;
+        if (e.shiftKey) {
+            // Ajustar bartender
+            if (e.key === 'ArrowUp') { POSITION_OFFSET.bartender.y -= step; e.preventDefault(); }
+            if (e.key === 'ArrowDown') { POSITION_OFFSET.bartender.y += step; e.preventDefault(); }
+            if (e.key === 'ArrowLeft') { POSITION_OFFSET.bartender.x -= step; e.preventDefault(); }
+            if (e.key === 'ArrowRight') { POSITION_OFFSET.bartender.x += step; e.preventDefault(); }
+            console.log('Bartender offset:', POSITION_OFFSET.bartender);
+            return;
+        }
+        if (e.ctrlKey) {
+            // Ajustar customers
+            if (e.key === 'ArrowUp') { POSITION_OFFSET.customer.y -= step; e.preventDefault(); }
+            if (e.key === 'ArrowDown') { POSITION_OFFSET.customer.y += step; e.preventDefault(); }
+            if (e.key === 'ArrowLeft') { POSITION_OFFSET.customer.x -= step; e.preventDefault(); }
+            if (e.key === 'ArrowRight') { POSITION_OFFSET.customer.x += step; e.preventDefault(); }
+            console.log('Customer offset:', POSITION_OFFSET.customer);
+            return;
+        }
+    }
+    
     // Seleção de poderes
     if (gameState === 'powerSelect') {
         if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
             selectedPowerIndex = Math.max(0, selectedPowerIndex - 1);
             playSound('hit');
-        } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        } else if (e.key === 'ArrowRight') {
             selectedPowerIndex = Math.min(powerOptions.length - 1, selectedPowerIndex + 1);
             playSound('hit');
         } else if (e.key === 'Enter' || e.key === ' ') {
@@ -1528,14 +1953,231 @@ function startGame() {
 }
 
 function gameOver() {
-    gameState = 'gameover';
-    document.getElementById('finalScore').textContent = score;
-    document.getElementById('gameOverScreen').style.display = 'flex';
+    // Verificar se é high score
+    if (isHighScore(score)) {
+        gameState = 'enterName';
+        playerInitials = ['A', 'A', 'A'];
+        currentInitialIndex = 0;
+        document.getElementById('gameOverScreen').style.display = 'none';
+    } else {
+        gameState = 'gameover';
+        document.getElementById('finalScore').textContent = score;
+        document.getElementById('gameOverScreen').style.display = 'flex';
+    }
+}
+
+// Confirmar iniciais e salvar no ranking
+function confirmInitials() {
+    const initials = playerInitials.join('');
+    addToRanking(initials, score, level);
+    gameState = 'showRanking';
+    playSound('hit');
+}
+
+// Mostrar tela de ranking
+function showRanking() {
+    document.getElementById('startScreen').style.display = 'none';
+    document.getElementById('gameOverScreen').style.display = 'none';
+    gameState = 'showRanking';
+}
+
+// Voltar do ranking para tela anterior
+function exitRanking() {
+    if (score > 0) {
+        gameState = 'gameover';
+        document.getElementById('finalScore').textContent = score;
+        document.getElementById('gameOverScreen').style.display = 'flex';
+    } else {
+        gameState = 'start';
+        document.getElementById('startScreen').style.display = 'flex';
+    }
 }
 
 // Event listeners dos botões
 document.getElementById('startBtn').addEventListener('click', startGame);
 document.getElementById('restartBtn').addEventListener('click', startGame);
+
+// Botões de ranking
+document.getElementById('rankingBtn')?.addEventListener('click', showRanking);
+document.getElementById('rankingBtnStart')?.addEventListener('click', showRanking);
+
+// ==========================================
+// CONTROLES TOUCH PARA CELULAR
+// ==========================================
+
+let touchStartY = 0;
+let touchStartX = 0;
+let isTouching = false;
+
+// Detectar se é dispositivo móvel
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+// Criar botões de controle virtuais para celular
+function createTouchControls() {
+    // Container dos controles
+    const controlsDiv = document.createElement('div');
+    controlsDiv.id = 'touchControls';
+    controlsDiv.innerHTML = `
+        <style>
+            #touchControls {
+                position: fixed;
+                bottom: 20px;
+                left: 0;
+                right: 0;
+                display: flex;
+                justify-content: space-between;
+                padding: 0 20px;
+                z-index: 1000;
+                pointer-events: none;
+            }
+            .touch-btn-group {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                pointer-events: auto;
+            }
+            .touch-btn {
+                width: 70px;
+                height: 70px;
+                border-radius: 50%;
+                background: rgba(139, 90, 43, 0.8);
+                border: 3px solid #5d4037;
+                color: #fff;
+                font-size: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                user-select: none;
+                touch-action: manipulation;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            }
+            .touch-btn:active {
+                background: rgba(109, 76, 65, 0.9);
+                transform: scale(0.95);
+            }
+            .touch-btn-serve {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+                background: rgba(76, 175, 80, 0.8);
+                border-color: #388e3c;
+            }
+            .touch-btn-serve:active {
+                background: rgba(56, 142, 60, 0.9);
+            }
+            @media (min-width: 800px) and (pointer: fine) {
+                #touchControls { display: none !important; }
+            }
+        </style>
+        <div class="touch-btn-group">
+            <button class="touch-btn" id="btnUp">⬆️</button>
+            <button class="touch-btn" id="btnDown">⬇️</button>
+        </div>
+        <div class="touch-btn-group" style="justify-content: center;">
+            <button class="touch-btn touch-btn-serve" id="btnServe">🍺</button>
+        </div>
+    `;
+    document.body.appendChild(controlsDiv);
+    
+    // Event listeners para os botões touch
+    const btnUp = document.getElementById('btnUp');
+    const btnDown = document.getElementById('btnDown');
+    const btnServe = document.getElementById('btnServe');
+    
+    // Prevenir zoom no double tap
+    [btnUp, btnDown, btnServe].forEach(btn => {
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+    });
+    
+    btnUp.addEventListener('touchstart', () => {
+        if (gameState === 'playing') bartender.moveUp();
+    });
+    
+    btnDown.addEventListener('touchstart', () => {
+        if (gameState === 'playing') bartender.moveDown();
+    });
+    
+    btnServe.addEventListener('touchstart', () => {
+        if (gameState === 'playing') serveDrink();
+        if (gameState === 'powerSelect') selectPower(selectedPowerIndex);
+    });
+}
+
+// Gestos de swipe no canvas
+canvas.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    touchStartY = touch.clientY;
+    touchStartX = touch.clientX;
+    isTouching = true;
+}, { passive: true });
+
+canvas.addEventListener('touchend', (e) => {
+    if (!isTouching) return;
+    isTouching = false;
+    
+    const touch = e.changedTouches[0];
+    const deltaY = touch.clientY - touchStartY;
+    const deltaX = touch.clientX - touchStartX;
+    
+    // Se foi um tap (sem movimento significativo)
+    if (Math.abs(deltaY) < 30 && Math.abs(deltaX) < 30) {
+        // Tap no canvas = servir bebida
+        if (gameState === 'playing') {
+            serveDrink();
+        } else if (gameState === 'powerSelect') {
+            // Tap na esquerda/direita para selecionar poder
+            const canvasRect = canvas.getBoundingClientRect();
+            const tapX = touch.clientX - canvasRect.left;
+            if (tapX < canvasRect.width / 3) {
+                selectedPowerIndex = Math.max(0, selectedPowerIndex - 1);
+            } else if (tapX > canvasRect.width * 2 / 3) {
+                selectedPowerIndex = Math.min(powerOptions.length - 1, selectedPowerIndex + 1);
+            } else {
+                selectPower(selectedPowerIndex);
+            }
+        }
+        return;
+    }
+    
+    // Swipe vertical para mover bartender
+    if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        if (deltaY < -30 && gameState === 'playing') {
+            bartender.moveUp();
+        } else if (deltaY > 30 && gameState === 'playing') {
+            bartender.moveDown();
+        }
+    }
+}, { passive: true });
+
+// Prevenir scroll ao tocar no canvas
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+}, { passive: false });
+
+// Ajustar canvas para telas menores
+function resizeCanvas() {
+    const container = canvas.parentElement;
+    const maxWidth = Math.min(window.innerWidth - 20, 800);
+    const scale = maxWidth / 800;
+    
+    if (window.innerWidth < 820) {
+        canvas.style.width = maxWidth + 'px';
+        canvas.style.height = (600 * scale) + 'px';
+    } else {
+        canvas.style.width = '800px';
+        canvas.style.height = '600px';
+    }
+}
+
+// Inicializar controles touch
+if (isMobile || window.innerWidth < 820) {
+    createTouchControls();
+}
+
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
 // Iniciar o loop do jogo
 gameLoop();

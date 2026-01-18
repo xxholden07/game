@@ -147,13 +147,57 @@ body {
 }
 
 @media (max-width: 850px) {
+    body {
+        padding: 10px;
+        padding-bottom: 180px; /* Espaço para controles touch */
+    }
+    
+    .container {
+        padding: 10px;
+        border-radius: 10px;
+    }
+    
     #gameCanvas {
         width: 100%;
         height: auto;
+        border-radius: 8px;
+    }
+    
+    .header h1 {
+        font-size: 1.5em;
     }
     
     .stats {
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
         gap: 10px;
+        padding: 10px;
+    }
+    
+    .stat {
+        font-size: 0.9em;
+    }
+    
+    .modal-content {
+        width: 90%;
+        padding: 20px;
+    }
+    
+    .modal-content h2 {
+        font-size: 1.5em;
+    }
+}
+
+@media (max-width: 500px) {
+    .header h1 {
+        font-size: 1.2em;
+    }
+    
+    .stats {
+        gap: 5px;
+    }
+    
+    .stat {
+        font-size: 0.8em;
     }
 }
