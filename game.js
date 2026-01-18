@@ -257,25 +257,31 @@ class Bartender {
             const drawWidth = config.frameSize.w * config.scale;
             const drawHeight = config.frameSize.h * config.scale;
             
+            ctx.save();
+            // Posicionar atrás do balcão (offset Y maior) e espelhar para olhar para a direita
+            ctx.translate(this.x, this.y - drawHeight - 25);
+            ctx.scale(-1, 1); // Espelhar para olhar para a direita
+            
             // Desenhar sprite (já tem fundo transparente)
             ctx.drawImage(
                 sprite,
                 0, 0,
                 sprite.width, sprite.height,
-                this.x - drawWidth / 2, this.y - drawHeight + 15,
+                -drawWidth / 2, 0,
                 drawWidth, drawHeight
             );
+            ctx.restore();
             
-            // Aura de poder ativo
+            // Aura de poder ativo (ajustada para nova posição)
             if (activePowers.length > 0) {
                 ctx.strokeStyle = '#ffd54f';
                 ctx.lineWidth = 3;
-                ctx.strokeRect(this.x - drawWidth/2 - 5, this.y - drawHeight + 10, drawWidth + 10, drawHeight + 10);
+                ctx.strokeRect(this.x - drawWidth/2 - 5, this.y - drawHeight - 30, drawWidth + 10, drawHeight + 10);
                 
                 // Partículas douradas
                 if (Math.random() < 0.3) {
                     const px = this.x + (Math.random() - 0.5) * 60;
-                    const py = this.y + (Math.random() - 0.5) * 80;
+                    const py = this.y - drawHeight/2 + (Math.random() - 0.5) * 80;
                     ctx.fillStyle = '#ffeb3b';
                     ctx.fillRect(px - 2, py - 2, 4, 4);
                 }
@@ -472,9 +478,9 @@ class Customer {
             const drawHeight = config.frameSize.h * config.scale;
             
             ctx.save();
-            // Posicionar com os pés no balcão
-            ctx.translate(this.x, this.y - drawHeight + 15);
-            ctx.scale(-1, 1); // Espelhar horizontalmente (vem da direita)
+            // Posicionar atrás do balcão (clientes vêm da direita)
+            ctx.translate(this.x, this.y - drawHeight - 25);
+            // Não espelhar - clientes olham para a esquerda naturalmente
             
             // Desenhar sprite (já tem fundo transparente)
             ctx.drawImage(
@@ -487,8 +493,8 @@ class Customer {
             
             ctx.restore();
             
-            // Barra de felicidade acima do sprite
-            const barY = this.y - drawHeight;
+            // Barra de felicidade acima do sprite (ajustada para nova posição)
+            const barY = this.y - drawHeight - 35;
             ctx.fillStyle = 'rgba(0,0,0,0.5)';
             ctx.fillRect(this.x - 25, barY, 50, 6);
             ctx.fillStyle = this.happiness > 0.5 ? '#4caf50' : '#f44336';
