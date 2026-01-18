@@ -1,0 +1,479 @@
+{
+  "source": "A_2D_pixel_art_sprite_sheet_in_medieval_fantasy_th.png",
+  "bg": {
+    "r": 100,
+    "g": 91,
+    "b": 96
+  },
+  "rows": [
+    {
+      "name": "barwoman",
+      "frame_size": {
+        "w": 122,
+        "h": 181
+      },
+      "frames": [
+        {
+          "file": "barwoman/barwoman_00.png",
+          "bbox": [
+            155,
+            39,
+            229,
+            217
+          ],
+          "offset": {
+            "x": 24,
+            "y": 3
+          }
+        },
+        {
+          "file": "barwoman/barwoman_01.png",
+          "bbox": [
+            280,
+            37,
+            353,
+            215
+          ],
+          "offset": {
+            "x": 24,
+            "y": 3
+          }
+        },
+        {
+          "file": "barwoman/barwoman_02.png",
+          "bbox": [
+            402,
+            38,
+            488,
+            214
+          ],
+          "offset": {
+            "x": 18,
+            "y": 5
+          }
+        },
+        {
+          "file": "barwoman/barwoman_03.png",
+          "bbox": [
+            520,
+            38,
+            600,
+            214
+          ],
+          "offset": {
+            "x": 21,
+            "y": 5
+          }
+        },
+        {
+          "file": "barwoman/barwoman_04.png",
+          "bbox": [
+            635,
+            36,
+            723,
+            217
+          ],
+          "offset": {
+            "x": 17,
+            "y": 0
+          }
+        },
+        {
+          "file": "barwoman/barwoman_05.png",
+          "bbox": [
+            791,
+            36,
+            882,
+            217
+          ],
+          "offset": {
+            "x": 15,
+            "y": 0
+          }
+        },
+        {
+          "file": "barwoman/barwoman_06.png",
+          "bbox": [
+            943,
+            37,
+            1022,
+            216
+          ],
+          "offset": {
+            "x": 21,
+            "y": 2
+          }
+        },
+        {
+          "file": "barwoman/barwoman_07.png",
+          "bbox": [
+            1078,
+            36,
+            1173,
+            216
+          ],
+          "offset": {
+            "x": 13,
+            "y": 1
+          }
+        },
+        {
+          "file": "barwoman/barwoman_08.png",
+          "bbox": [
+            1217,
+            36,
+            1299,
+            217
+          ],
+          "offset": {
+            "x": 20,
+            "y": 0
+          }
+        },
+        {
+          "file": "barwoman/barwoman_09.png",
+          "bbox": [
+            1337,
+            36,
+            1459,
+            217
+          ],
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "sheet": "barwoman_sheet.png"
+    },
+    {
+      "name": "elf",
+      "frame_size": {
+        "w": 101,
+        "h": 151
+      },
+      "frames": [
+        {
+          "file": "elf/elf_00.png",
+          "bbox": [
+            152,
+            261,
+            224,
+            412
+          ],
+          "offset": {
+            "x": 14,
+            "y": 0
+          }
+        },
+        {
+          "file": "elf/elf_01.png",
+          "bbox": [
+            272,
+            261,
+            343,
+            412
+          ],
+          "offset": {
+            "x": 15,
+            "y": 0
+          }
+        },
+        {
+          "file": "elf/elf_02.png",
+          "bbox": [
+            400,
+            262,
+            466,
+            412
+          ],
+          "offset": {
+            "x": 17,
+            "y": 1
+          }
+        },
+        {
+          "file": "elf/elf_03.png",
+          "bbox": [
+            521,
+            261,
+            593,
+            411
+          ],
+          "offset": {
+            "x": 14,
+            "y": 1
+          }
+        },
+        {
+          "file": "elf/elf_04.png",
+          "bbox": [
+            645,
+            261,
+            730,
+            412
+          ],
+          "offset": {
+            "x": 8,
+            "y": 0
+          }
+        },
+        {
+          "file": "elf/elf_05.png",
+          "bbox": [
+            795,
+            263,
+            880,
+            412
+          ],
+          "offset": {
+            "x": 8,
+            "y": 2
+          }
+        },
+        {
+          "file": "elf/elf_06.png",
+          "bbox": [
+            921,
+            264,
+            1015,
+            412
+          ],
+          "offset": {
+            "x": 3,
+            "y": 3
+          }
+        },
+        {
+          "file": "elf/elf_07.png",
+          "bbox": [
+            1085,
+            265,
+            1166,
+            412
+          ],
+          "offset": {
+            "x": 10,
+            "y": 4
+          }
+        },
+        {
+          "file": "elf/elf_08.png",
+          "bbox": [
+            1209,
+            261,
+            1304,
+            412
+          ],
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "file": "elf/elf_09.png",
+          "bbox": [
+            1359,
+            263,
+            1460,
+            412
+          ],
+          "offset": {
+            "x": 0,
+            "y": 2
+          }
+        }
+      ],
+      "sheet": "elf_sheet.png"
+    },
+    {
+      "name": "rogue",
+      "frame_size": {
+        "w": 101,
+        "h": 154
+      },
+      "frames": [
+        {
+          "file": "rogue/rogue_00.png",
+          "bbox": [
+            132,
+            479,
+            205,
+            630
+          ],
+          "offset": {
+            "x": 14,
+            "y": 3
+          }
+        },
+        {
+          "file": "rogue/rogue_01.png",
+          "bbox": [
+            257,
+            482,
+            333,
+            633
+          ],
+          "offset": {
+            "x": 12,
+            "y": 3
+          }
+        },
+        {
+          "file": "rogue/rogue_02.png",
+          "bbox": [
+            383,
+            482,
+            461,
+            633
+          ],
+          "offset": {
+            "x": 11,
+            "y": 3
+          }
+        },
+        {
+          "file": "rogue/rogue_03.png",
+          "bbox": [
+            507,
+            481,
+            584,
+            633
+          ],
+          "offset": {
+            "x": 12,
+            "y": 2
+          }
+        },
+        {
+          "file": "rogue/rogue_04.png",
+          "bbox": [
+            641,
+            479,
+            718,
+            633
+          ],
+          "offset": {
+            "x": 12,
+            "y": 0
+          }
+        },
+        {
+          "file": "rogue/rogue_05.png",
+          "bbox": [
+            775,
+            479,
+            866,
+            633
+          ],
+          "offset": {
+            "x": 5,
+            "y": 0
+          }
+        },
+        {
+          "file": "rogue/rogue_06.png",
+          "bbox": [
+            899,
+            480,
+            1000,
+            633
+          ],
+          "offset": {
+            "x": 0,
+            "y": 1
+          }
+        },
+        {
+          "file": "rogue/rogue_07.png",
+          "bbox": [
+            1049,
+            479,
+            1144,
+            633
+          ],
+          "offset": {
+            "x": 3,
+            "y": 0
+          }
+        },
+        {
+          "file": "rogue/rogue_08.png",
+          "bbox": [
+            1192,
+            479,
+            1290,
+            633
+          ],
+          "offset": {
+            "x": 1,
+            "y": 0
+          }
+        },
+        {
+          "file": "rogue/rogue_09.png",
+          "bbox": [
+            1335,
+            479,
+            1435,
+            633
+          ],
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "sheet": "rogue_sheet.png"
+    },
+    {
+      "name": "dwarves",
+      "frame_size": {
+        "w": 416,
+        "h": 247
+      },
+      "frames": [
+        {
+          "file": "dwarves/dwarves_00.png",
+          "bbox": [
+            111,
+            717,
+            518,
+            964
+          ],
+          "offset": {
+            "x": 4,
+            "y": 0
+          }
+        },
+        {
+          "file": "dwarves/dwarves_01.png",
+          "bbox": [
+            572,
+            717,
+            974,
+            964
+          ],
+          "offset": {
+            "x": 7,
+            "y": 0
+          }
+        },
+        {
+          "file": "dwarves/dwarves_02.png",
+          "bbox": [
+            1051,
+            717,
+            1467,
+            964
+          ],
+          "offset": {
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "sheet": "dwarves_sheet.png"
+    }
+  ]
+}
